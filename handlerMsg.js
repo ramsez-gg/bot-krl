@@ -62,6 +62,8 @@ function parseTanggal (tanggal){
     console.log(splitTanggal)
     return splitTanggal
 }
+
+//! reply process
 //*mengolah data hasil pertanyaan user
 //const starQ = '/ts 205JR33'
 
@@ -147,10 +149,10 @@ function handlerKA (allData,startQ){
                     console.log(dataKA[4],start,dataKA[5],end)
                     if(start>end){
                         const response_ = response_1.slice(end,start+1).reverse()
-                        //console.log(response_,start,end)
+                        //console.log(response_[1][1])
                         let departTime = dataKA[6].split(':')
                         departTime = Number(departTime[0])*60 + Number(departTime[1])
-                        const estTimeArr = [[response_[0][1],numberToClockTime(departTime)]]
+                        const estTimeArr = [[response_[0][3],numberToClockTime(departTime)]]
                         let i = 1
                         while (i < response_.length){
                             let departTimeKA = Number(response_[i-1][4]) + departTime
@@ -219,8 +221,6 @@ function handlerTS (allData,startQ){
 
 }
 
-//! reply process
-
 export function responseJawaban(allData,msg){
   
   const startQ = msg.toLowerCase()
@@ -248,6 +248,10 @@ export function responseJawaban(allData,msg){
     return response
 }
 
+//TEST
+const msg = '/ka 1002'
+responseJawaban(allData,msg)
+
 //! Input laporan dll
 export function responseInputData(msg){
   const startD = msg.toLowerCase()
@@ -273,17 +277,6 @@ export function responseInputData(msg){
 
   return response;
 }
-
-//test
-// const str = '#Tanggal_____: 11/06/2026\n'+
-//         '#Klasifikasi_: Lintas\n'+
-//         '#Lintas_______: BOO LINE\n'+
-//         '#Kelas________: B\n'+
-//         '#Jam__________:10:30\n'+
-//         '#KA___________:1104\n'+
-//         '#Lokasi_______: \nTangerang\nbarat\n';
-
-// handlerInputLaporan(str)
 
 
 function handlerInputLaporan (msg){
@@ -506,6 +499,17 @@ function formattingItem(i,item){
 
   return item
 }
+
+//test
+// const str = '#Tanggal_____: 11/06/2026\n'+
+//         '#Klasifikasi_: Lintas\n'+
+//         '#Lintas_______: BOO LINE\n'+
+//         '#Kelas________: B\n'+
+//         '#Jam__________:10:30\n'+
+//         '#KA___________:1104\n'+
+//         '#Lokasi_______: \nTangerang\nbarat\n';
+
+// handlerInputLaporan(str)
 
 //! Pencarian Data Riwayat Trainset
 //TEST
