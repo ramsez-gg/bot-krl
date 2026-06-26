@@ -1,0 +1,13 @@
+# Folder build atau hasil compile
+/.wwebjs_auth/
+/.wwebjs_cache/
+/node_modules/
+
+# File konfigurasi lokal
+.env
+config.json
+keys-db sarana dinas.json
+
+# File sistem
+*.log
+*.tmp
