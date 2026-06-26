@@ -7,7 +7,7 @@
 .env
 config.json
 keys-db sarana dinas.json
-batchData.json
+batchDataGS.json
 tempData.json
 
 # File sistem

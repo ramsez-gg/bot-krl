@@ -94,12 +94,12 @@ export function saveToJSON(data) {
     formatted[sheetName] = range.values;
   });
 
-  fs.writeFileSync('batchData.json', JSON.stringify(formatted, null, 2)); //! JSON.stringfy opt apa saja
-  console.log("Data multi-sheet tersimpan ke batchData.json");
+  fs.writeFileSync('batchDataGS.json', JSON.stringify(formatted, null, 2)); //! JSON.stringfy opt apa saja
+  console.log("Data multi-sheet tersimpan ke batchDataGS.json");
 }
 
 export function readJSON() {
-  const raw = fs.readFileSync('batchData.json');
+  const raw = fs.readFileSync('batchDataGS.json');
   const data = JSON.parse(raw);
   const sheetNames = Object.keys(data);
 
