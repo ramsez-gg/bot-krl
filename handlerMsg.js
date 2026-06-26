@@ -1,4 +1,5 @@
 import { readJSON, pushToJSON, pushDataToGS } from "./handlerGAS.js";
+const allData = readJSON()
 
 function formatTextReply(rows,pemisah_1,pemisah_2) {
   // Hitung panjang maksimum tiap kolom
@@ -369,7 +370,7 @@ function formattingItem(i,item){
       item = item
     }
     else{
-      item = 'format tanggal salah, Cth yg benar => 01/01/2026'
+      item = '`format tanggal salah, Cth yg benar => 01/01/2026`'
     }
     }
 
@@ -379,7 +380,7 @@ function formattingItem(i,item){
       item = item.toUpperCase()
     }
     else{
-      item = 'Format Salah, Format yang sesuai => Lintas/DC/MC/PB'
+      item = '`Format Salah, Format yang sesuai => Lintas/DC/MC/PB`'
     }
   }
 
@@ -389,7 +390,7 @@ function formattingItem(i,item){
       item = item.toUpperCase()
     
   else{
-      item = 'Format Salah, Format yang Sesuai => (BOO LINE/RK LINE/TNG LINE/CKR LINE/BST LINE/TPK LINE)'
+      item = '`Format Salah, Format yang Sesuai => (BOO LINE/RK LINE/TNG LINE/CKR LINE/BST LINE/TPK LINE)`'
   }
   }
 
@@ -399,18 +400,18 @@ function formattingItem(i,item){
       item = item.toUpperCase()
     }
     else{
-      item = 'Pilih kelas A/B/C =>\nA : untuk gangguan yang mengganggu perka\nB : TL ON Trip\nC : TL saat PH/Bersiang'
+      item = '`Pilih kelas A/B/C =>\nA : untuk gangguan yang mengganggu perka\nB : TL ON Trip\nC : TL saat PH/Bersiang`'
     }
   }
 
   //JAM
-  if( i == 4){
-    if(isValidTime(item)){
-    }
-    else{
-      item = 'Sesuaikan Format Jam Cth => 10:30'
-    }
-  }
+  // if( i == 4){
+  //   if(isValidTime(item)){
+  //   }
+  //   else{
+  //     item = 'Sesuaikan Format Jam Cth => 10:30'
+  //   }
+  // }
   
   //KA
   if(i == 5){
@@ -441,7 +442,7 @@ function formattingItem(i,item){
       item = item.toUpperCase()
     }
     else{
-      item = 'Sesuaikan Format => AC/BIE/PNE/BG/PTR/ICA/ME/APS/LL'
+      item = '`Sesuaikan Format => AC/BIE/PNE/BG/PTR/ICA/ME/APS/LL`'
     }
   }
 
@@ -508,46 +509,87 @@ function formattingItem(i,item){
 
 //! Pencarian Data Riwayat Trainset
 //TEST
-const test_msg = 
-`?data 
-#TS: 205JR144
-#Tanggal: Juli&2026
-#Kereta: 205-144
-#Kategori: ICA
-#Crew TL: PUKRL MRI
-#Status: CLOSE`
 
-const allData = readJSON()
 
-function handlerCariData (allData,msg_0){
-  const dataRekap = allData.all_ctrq
-  const msg = msg_0.toLowerCase().split('#')
-  let filterData = msg.map(e => e.trim())
-      filterData = filterData.slice(1)
-      filterData = filterData.map(e => e.split(':')).map(e => [e[0],e[1].trim()])
-
-  let colIndices = []
-      filterData.map(e => colIndices.push(dataRekap[0].map(e => e.toLowerCase()).indexOf(e[0])))
-  console.log(colIndices)
-  console.log(filterData)
-      
-  
-  dynamicFilter(dataRekap,colIndices,x => x == filterData[1], 'AND' )
-  //console.log(filterData)
-  //console.log(dataRekap[0])
-
+export function responseCariData(msg){
+  const data = allData.all_ctrq
+  return handlerCariData(data,msg)
 }
 
-function dynamicFilter(data, colIndices, condition, operator="AND") {
-  return data.filter(row => {
-    let checks = colIndices.map(i => condition(row[i]));
-    if (operator === "AND") {
-      return checks.every(Boolean);
-    } else if (operator === "OR") {
-      return checks.some(Boolean);
+function handlerCariData (allData,msg_0){
+  const str = msg_0
+
+  function parseFilterString(str) {
+    const lines = str.trim().split("\n");
+    const filters = {};
+
+    lines.forEach(line => {
+      // Hilangkan tanda # di depan
+      const cleanLine = line.replace(/^#/, "").trim();
+      // Pisahkan key dan value berdasarkan tanda :
+      const [key, value] = cleanLine.split(":").map(s => s.trim());
+      if (key && value) {
+        filters[key] = value;
+      }
+    });
+
+    return filters;
+  }
+
+  const scopeFilter = parseFilterString(str)
+  console.log(scopeFilter)
+
+  let responseStr = dynamicFilter(allData,scopeFilter).sort((a, b) => {
+    // gabungkan kolom tanggal, bulan, tahun jadi string
+    const dateA = new Date(`${a[2]} ${a[3]} ${a[4]}`);
+    const dateB = new Date(`${b[2]} ${b[3]} ${b[4]}`);
+    return dateB - dateA;
+  }).slice(0,30);
+
+  const responseLength = responseStr.length
+      responseStr = responseStr.map(e => `Tanggal: ${e[1]},${e[2]}-${e[3]}-${e[4]}\n`+
+        `Order: ${e[5]}\nTS: ${e[12]} (${e[13]})\nKategori: ${e[15]} - ${e[16]}\nIndikasi: ${e[18]}\nTL: ${e[19]}\nCrew TL: ${e[20]} - ${e[21]}\n`+
+        (e[22] && e[22].trim() !== "" ? `TL Depo: ${e[22]}` : ""))
+      
+      responseStr = responseStr.join(`\n===============\n`)
+ 
+        responseStr = `Berikut ${responseLength} data terakhir...\n${responseStr}`
+        console.log(responseStr)
+ return responseStr
+}
+
+function dynamicFilter(data, filterParams) {
+  const header = data[0].map(e => e.toLowerCase()); // baris pertama = header
+  const rows = data.slice(1); // sisanya = isi data
+
+  return rows.filter(row => {
+    let match = true;
+
+    for (const key in filterParams) {
+      const colIndex = header.indexOf(key.toLowerCase());
+      if (colIndex !== -1) {
+        const value = row[colIndex] ? row[colIndex].toString().toLowerCase() : "";
+        const filterValue = filterParams[key].toString().toLowerCase();
+
+        // hanya cek apakah value mengandung filterValue
+        if (!value.includes(filterValue)) {
+          match = false;
+          break;
+        }
+      }
     }
+
+    return match;
   });
 }
 
-handlerCariData(allData,test_msg)
+// const test_msg = 
+// `?data 
+// #TS: 205JR144
+// #Status: OPEN`
+
+
+// handlerCariData(allData.all_ctrq,test_msg)
+
+
 

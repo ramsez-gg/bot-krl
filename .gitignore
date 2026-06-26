@@ -7,6 +7,8 @@
 .env
 config.json
 keys-db sarana dinas.json
+batchData.json
+tempData.json
 
 # File sistem
 *.log

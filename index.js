@@ -1,9 +1,12 @@
 import qrcode from 'qrcode-terminal'
 const {LocalAuth,Client} = pkgWA 
 import pkgWA from 'whatsapp-web.js'
-import { responseJawaban, responseInputData, submitDataLaporan } from './handlerMsg.js'
+import * as respMsg from './handlerMsg.js'
 import * as gasProcess from './handlerGAS.js'
 import cron from 'node-cron'
+
+
+
 
 
 const client = new Client({
@@ -77,14 +80,12 @@ client.on('message', async msg => {
     Untuk mencari data riwayat sebuah trainset :
     (Filter berdasarkan Lintas, No Trainset, No Kereta, Tanggal, Kategori, Komponen, Crew TL, Status) 
     Format Penulisan =>
-    Gunakan '/' untuk fungsi *atau*
-    Gunakan '&' untuk fungsi *dan*
     Contoh :
-    *?data*
-    *205JR144/205JR141*
-                    
-    *?data*
-    *205JR144&Juli&2026*`
+    ?data 
+    #TS: 205JR144
+    #Bulan: April
+    #Tahun: 2026
+    #Status: CLOSE`
                     
                     
         //firstMenu = firstMenu.join('\n*=============*\n')
@@ -101,7 +102,7 @@ client.on('message', async msg => {
     }
 
     else if(msgg.startsWith('!inputgangguan')){
-        let response = responseInputData(msgg)
+        let response = respMsg.responseInputData(msgg)
         //console.log(response)
         msg.reply(response)  
 
@@ -138,7 +139,7 @@ client.on('message', async msg => {
         '*=============*\n'+
         '#Klasifikasi_:\n'+
         'Isi dengan keterangan dimana gangguan ditemukan\n'+
-        'Lintas/DC/MC/PB MC\n'+
+        'Lintas/DC/MC/PB\n'+
         '*=============*\n'+
         '#Lintas_______:\n'+
         'Isi dengan keterangan Lintas KA tsb\n'+
@@ -216,7 +217,7 @@ client.on('message', async msg => {
         //console.log(quotedMsg.body)
         let response = ''
         try {
-            const dataSubmit = submitDataLaporan(quotedMsg.body)
+            const dataSubmit = respMsg.submitDataLaporan(quotedMsg.body)
             if(allData.kendala_lintas.some(e => e[0] == dataSubmit[0][0])){
                 response = 'Data sudah ada yg input (terdeteksi sebagai data duplikat), terima kasih'
             }
@@ -236,8 +237,12 @@ client.on('message', async msg => {
         
     }
     else if(msgg.startsWith('/')){
-        const jawaban = responseJawaban(allData,msgg)
+        const jawaban = respMsg.responseJawaban(allData,msgg)
         setTimeout(() => {msg.reply(jawaban)}, Math.random()*3000)
+    }
+    else if(msgg.startsWith('?data')){
+           let response = respMsg.responseCariData(msgg)   
+           msg.reply(response)  
     }
     else {
         console.log('Informasi yg diberikan tidak sesuai..')
